@@ -289,7 +289,40 @@ In this task we'll use Docker Compose to stand up a multi-tier voting applicatio
 	![Container Menu](images/container_menu.jpg)
 	
 	
+##Task 6: Deploy HA mode for UCP
+In this lab you will deploy additional UCP nodes using HA and then test the redundancy of your HA deployment. In order to have an HA cluster for UCP, you must have a minimal of 3 nodes, 1 primary controller and 2 replicas. In this case ducp-0 will be the primary controller; ducp-1 and ducp-2 will be replcas.
+	
+1. Re-deploy your second node. In a new terminal session ssh into **ducp-1**
 
+		$ ssh -i <identity file> ubuntu@<ducp-1 public ip>
+
+2. Run the UCP bootstrap to re-run a join operation as well as create a replica for HA operation
+
+		docker run --rm -it  -v /var/run/docker.sock:/var/run/docker.sock --name ucp dockerorca/ucp join --interactive --fresh-install --replica
+
+3. Provide the following inputs:
+
+	- URL to the Orca server: `https://<ducp-0 IP>`
+	- Proceed with the join: `y`
+	- Admin username: `admin`
+	- Admin password: `<password>`
+	- Additional Aliases: `<ducp-1 Public DNS>` `<ducp-1 IP>`
+
+	The Installer should finish with something similar to:
+	
+		INFO[0000] This engine will join Orca and advertise itself with host address 10.0.11.13
+		INFO[0000] Verifying your system is compatible with Orca
+		INFO[0012] Starting local swarm containers
+	
+4. Go back to your web browser, and refresh the dashboard. You should now see you have 2 nodes running. You should also see the health of your cluster as "Healthy".
+	[Swarm Dashboard](images/ha-swarm_dashboard.png)
+
+5. Click `Nodes`
+
+	Here you can see details on both of your running nodes
+	
+6. Repeat steps 1-3 for ducp-2. 
+7. Check to ensure your cluster is healthy by refreshing the dashboard. Once you have confirmed you have a healthy cluster, restart the primary controller. You can view the logs for ducp-1 and ducp-2 to ensure one of these nodes takes over the leadership of the cluster. You can also perform additional container operations through the browser on either ducp-1 or ducp-2.
 
 
 
